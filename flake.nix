@@ -34,15 +34,11 @@
               pkgs.haskell-language-server
             ];
           };
-          defaultPackage = pkgs.haskellPackages.xmonad-kid;
-          # defaultPackage = pkgs.haskellPackages.xmonad-kid.overrideAttrs (old: rec {
-          #   nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.makeWrapper ];
-          #   installPhase = old.installPhase + ''
-          #     ln -s ${pkgs.haskellPackages.xmonad-kid}/bin/xmonad-kid $out/bin/xmonad-${system}
-          #   '';
-          #   # postFixup = ''
-          #   #   wrapProgram $out/bin/xmonad-${system} --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.haskellPackages.xmobar]}
-          #   # '';
-          # });
+          packages = flake-utils.lib.flattenTree {
+            xmonad = pkgs.haskellPackages.xmonad;
+            xmonad-kid = pkgs.haskellPackages.xmonad-kid;
+          };
+
+          defaultPackage = packages.xmonad-kid;
         }) // { inherit overlay overlays; };
 }
