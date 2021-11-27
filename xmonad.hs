@@ -52,10 +52,10 @@ myKeys =
   ]
 
 defaultLayouts =
-  smartSpacingWithEdge
-    8
-    ( smartBorders
-        ( avoidStruts
+  smartBorders
+    ( avoidStruts
+        ( smartSpacingWithEdge
+            8
             ( centeredIfSingle
                 0.9
                 -- ThreeColMid layout puts the large master window in the center
