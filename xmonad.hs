@@ -57,7 +57,7 @@ defaultLayouts =
         ( smartSpacingWithEdge
             8
             ( centeredIfSingle
-                0.9
+                1
                 -- ThreeColMid layout puts the large master window in the center
                 -- of the screen. As configured below, by default it takes of 3/4 of
                 -- the available space. Remaining windows tile to both the left and
