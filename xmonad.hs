@@ -16,10 +16,10 @@ import XMonad.Layout.PerWorkspace (onWorkspace)
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.Spacing
 import XMonad.Layout.ThreeColumns
+import XMonad.Prompt.Window (WindowPrompt (Goto), windowPrompt, wsWindows)
 import XMonad.Util.EZConfig
 import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run (hPutStrLn, spawnPipe)
-import XMonad.Prompt.Window (windowPrompt, wsWindows, WindowPrompt (Goto))
 
 myModMask :: KeyMask
 myModMask = mod4Mask
