@@ -1,0 +1,19 @@
+cabal-version: 2.4
+name:          xmonad-kid
+version:       0.1.0.0
+category:      System
+build-type:    Simple
+
+
+executable xmonad-kid
+  main-is:          xmonad.hs
+  build-depends:
+      base
+    , xmonad
+    , xmonad-contrib
+    , X11
+    , containers
+    , utf8-string
+
+  hs-source-dirs:   .
+  default-language: Haskell2010
