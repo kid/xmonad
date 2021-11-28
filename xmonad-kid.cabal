@@ -9,6 +9,7 @@ executable xmonad-kid
   main-is:          xmonad.hs
   build-depends:
       base
+    , hostname
     , xmonad
     , xmonad-contrib
     , X11

@@ -1,5 +1,6 @@
 import Data.Monoid (All (All))
 import qualified Data.Monoid
+import Network.HostName
 import XMonad
 import qualified XMonad as XMonad.Operations
 import XMonad.Hooks.EwmhDesktops
@@ -7,6 +8,7 @@ import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers (doCenterFloat)
 import XMonad.Hooks.StatusBar
+import XMonad.Hooks.StatusBar.PP
 import XMonad.Layout.CenteredIfSingle
 import XMonad.Layout.Circle
 import XMonad.Layout.Grid
@@ -17,7 +19,6 @@ import XMonad.Layout.ThreeColumns
 import XMonad.Prompt.Window (WindowPrompt (Goto), windowPrompt, wsWindows)
 import XMonad.Util.EZConfig
 import XMonad.Util.NamedScratchpad
-import XMonad.Hooks.StatusBar.PP
 
 myModMask :: KeyMask
 myModMask = mod4Mask
@@ -111,15 +112,14 @@ restartEventHook _ = return $ All True
 -- xmobar0 = statusBarPropTo "_XMONAD_LOG_0" "xmobar-kid top" (pure xmobarPP)
 -- xmobar1 = statusBarPropTo "_XMONAD_LOG_1" "xmobar-kid top" (pure xmobarPP)
 
-polybar :: ScreenId -> StatusBarConfig
-polybar (S n) = statusBarGeneric ("polybar --config=\"${XDG_CONFIG_HOME}/polybar/polybar.ini\" bar" ++ show n) mempty
+polybarSpawner :: String -> ScreenId -> IO StatusBarConfig
+polybarSpawner h n = pure $ polybar h n
+
+polybar :: String -> ScreenId -> StatusBarConfig
+polybar h (S n) = statusBarGeneric ("polybar \"" ++ h ++ show n ++ "\"") mempty
 
 xmobar :: ScreenId -> StatusBarConfig
 xmobar (S n) = statusBarPropTo ("_XMONAD_LOG_" ++ show n) ("xmobar -x " ++ show n ++ " $HOME/.config/xmobar/gruvbox-dark.xmobarrc") (pure xmobarPP)
-
-
-polybarSpawner :: ScreenId -> IO StatusBarConfig
-polybarSpawner n = pure $ polybar n
 
 xmobarSpawner :: ScreenId -> IO StatusBarConfig
 xmobarSpawner n = pure $ xmobar n
@@ -128,11 +128,12 @@ xmobarSpawner n = pure $ xmobar n
 
 main :: IO ()
 main = do
+  hostName <- getHostName
   -- xmproc0 <- spawnPipe "xmobar -x 0 $HOME/.config/xmobar/gruvbox-dark.xmobarrc"
   -- spawn "taffybar-kid"
   dirs <- getDirectories
   (`launch` dirs)
-    . dynamicSBs polybarSpawner
+    . dynamicSBs (polybarSpawner hostName)
     -- . dynamicSBs xmobarSpawner
     . docks
     . ewmh

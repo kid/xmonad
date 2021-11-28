@@ -37,19 +37,24 @@
               pkgs.haskell-language-server
             ];
           };
+
           packages = flake-utils.lib.flattenTree {
             xmonad = pkgs.haskellPackages.xmonad;
             xmonad-kid = pkgs.haskellPackages.xmonad-kid.overrideAttrs (old: rec {
               nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.makeWrapper pkgs.polybar ];
               installPhase = old.installPhase + ''
-                mkdir -p $out/.config/polybar
-                cp $src/polybar.ini $out/.config/
+                cp $src/polybar.ini $out/
+                ln -s ${pkgs.polybar}/bin/polybar "$out/bin/polybar"
               '';
-              # TODO use `--set-default` instead?
+
+              # TODO https://nixos.wiki/wiki/Nix_Cookbook might have a better solution
               postFixup = ''
-                wrapProgram $out/bin/xmonad-kid \
-                  --prefix PATH : ${lib.makeBinPath [pkgs.xmobar pkgs.polybar]} \
-                  --set XDG_CONFIG_HOME "$out/.config"
+                wrapProgram "$out/bin/xmonad-kid" \
+                  --prefix PATH : "$out/bin/polybar" \
+                  --set-default POLYBAR_CONFIG "$out/polybar.ini"
+                wrapProgram "$out/bin/polybar" \
+                  --add-flags "-c" \
+                  --add-flags "$out/polybar.ini"
               '';
             });
           };
