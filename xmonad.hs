@@ -2,24 +2,22 @@ import Data.Monoid (All (All))
 import qualified Data.Monoid
 import XMonad
 import qualified XMonad as XMonad.Operations
-import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, isFullscreen)
+import XMonad.Hooks.ManageHelpers (doCenterFloat)
+import XMonad.Hooks.StatusBar
 import XMonad.Layout.CenteredIfSingle
 import XMonad.Layout.Circle
 import XMonad.Layout.Grid
-import XMonad.Layout.IM
 import XMonad.Layout.NoBorders
-import XMonad.Layout.PerWorkspace (onWorkspace)
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.Spacing
 import XMonad.Layout.ThreeColumns
 import XMonad.Prompt.Window (WindowPrompt (Goto), windowPrompt, wsWindows)
 import XMonad.Util.EZConfig
 import XMonad.Util.NamedScratchpad
-import XMonad.Util.Run (hPutStrLn, spawnPipe)
+import XMonad.Hooks.StatusBar.PP
 
 myModMask :: KeyMask
 myModMask = mod4Mask
@@ -52,7 +50,8 @@ myKeys =
   ]
 
 defaultLayouts =
-  smartBorders
+  lessBorders
+    Screen
     ( avoidStruts
         ( smartSpacingWithEdge
             8
@@ -98,30 +97,54 @@ myManageHooks =
     <+> namedScratchpadManageHook myScratchpads
     <+> manageDocks
 
-restartEventHook e@ClientMessageEvent {ev_message_type = mt} = do
+restartEventHook :: Event -> X All
+restartEventHook ClientMessageEvent {ev_message_type = mt} = do
   a <- getAtom "XMONAD_RESTART"
   if mt == a
     then XMonad.Operations.restart "xmonad-kid" True >> return (All True)
     else return $ All True
 restartEventHook _ = return $ All True
 
+-- taffybar = statusBarGeneric "taffybar-kid" mempty
+-- xmobar0 = statusBarPropTo "_XMONAD_LOG_0" "xmobar -x 0 $HOME/.config/xmobar/gruvbox-dark.xmobarrc" (pure xmobarPP)
+-- xmobar1 = statusBarPropTo "_XMONAD_LOG_1" "xmobar -x 1 $HOME/.config/xmobar/gruvbox-dark.xmobarrc" (pure xmobarPP)
+-- xmobar0 = statusBarPropTo "_XMONAD_LOG_0" "xmobar-kid top" (pure xmobarPP)
+-- xmobar1 = statusBarPropTo "_XMONAD_LOG_1" "xmobar-kid top" (pure xmobarPP)
+
+polybar :: ScreenId -> StatusBarConfig
+polybar (S n) = statusBarGeneric ("polybar --config=\"${XDG_CONFIG_HOME}/polybar/polybar.ini\" bar" ++ show n) mempty
+
+xmobar :: ScreenId -> StatusBarConfig
+xmobar (S n) = statusBarPropTo ("_XMONAD_LOG_" ++ show n) ("xmobar -x " ++ show n ++ " $HOME/.config/xmobar/gruvbox-dark.xmobarrc") (pure xmobarPP)
+
+
+polybarSpawner :: ScreenId -> IO StatusBarConfig
+polybarSpawner n = pure $ polybar n
+
+xmobarSpawner :: ScreenId -> IO StatusBarConfig
+xmobarSpawner n = pure $ xmobar n
+
+-- TODO look into https://github.com/disconsis/literate-xmonad-config/blob/master/src/config.org#dynamic-bar-highlighting-and-management
+
 main :: IO ()
 main = do
-  xmproc0 <- spawnPipe "xmobar -x 0 $HOME/.config/xmobar/gruvbox-dark.xmobarrc"
+  -- xmproc0 <- spawnPipe "xmobar -x 0 $HOME/.config/xmobar/gruvbox-dark.xmobarrc"
+  -- spawn "taffybar-kid"
   dirs <- getDirectories
-  (`launch` dirs) $
-    docks $
-      ewmhFullscreen $
-        ewmh
-          def
-            { manageHook = myManageHooks,
-              modMask = myModMask,
-              terminal = myTerminal,
-              layoutHook = defaultLayouts,
-              logHook = dynamicLogWithPP $ xmobarPP {ppOutput = hPutStrLn xmproc0},
-              handleEventHook = restartEventHook,
-              borderWidth = 2,
-              normalBorderColor = "#282828",
-              focusedBorderColor = "#8ec07c"
-            }
-          `additionalKeysP` myKeys
+  (`launch` dirs)
+    . dynamicSBs polybarSpawner
+    -- . dynamicSBs xmobarSpawner
+    . docks
+    . ewmh
+    $ ewmhFullscreen
+      def
+        { manageHook = myManageHooks,
+          modMask = myModMask,
+          terminal = myTerminal,
+          layoutHook = defaultLayouts,
+          handleEventHook = restartEventHook,
+          borderWidth = 2,
+          normalBorderColor = "#282828",
+          focusedBorderColor = "#8ec07c"
+        }
+      `additionalKeysP` myKeys

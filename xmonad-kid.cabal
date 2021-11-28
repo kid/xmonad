@@ -16,4 +16,5 @@ executable xmonad-kid
     , utf8-string
 
   hs-source-dirs:   .
+  ghc-options: -rtsopts -threaded -with-rtsopts=-N -Wall
   default-language: Haskell2010
