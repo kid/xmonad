@@ -42,6 +42,8 @@ myKeys =
     ("M-S-r", spawn "xmonad --restart"),
     ("M-s h", namedScratchpadAction myScratchpads "htop"),
     ("M-s t", namedScratchpadAction myScratchpads "telegram"),
+    ("M-b", spawn "google-chrome-stable"),
+    ("M-S-b", spawn "google-chrome-stable --incognito"),
     ("<XF86AudioMute>", spawn "pactl set-sink-mute @DEFAULT_SINK@ toggle"),
     ("<XF86AudioLowerVolume>", spawn "pactl set-sink-volume @DEFAULT_SINK@ -10%"),
     ("<XF86AudioRaiseVolume>", spawn "pactl set-sink-volume @DEFAULT_SINK@ +10%"),
