@@ -1,0 +1,11 @@
+* Inspirations
+
+  https://github.com/altercation/dotfiles-tilingwm/blob/master/.xmonad/xmonad.hs
+  https://github.com/disconsis/literate-xmonad-config/blob/master/src/config.org
+
+* Things to look at
+
+** TODO https://xmonad.github.io/xmonad-docs/xmonad-contrib/XMonad-Util-Hacks.html
+** TODO https://hackage.haskell.org/package/xmonad-contrib-0.17.0/docs/XMonad-Actions-DynamicWorkspaceGroups.html
+** TODO https://hackage.haskell.org/package/xmonad-contrib-0.17.0/docs/XMonad-Actions-TopicSpace.html
+
