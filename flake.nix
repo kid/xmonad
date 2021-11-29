@@ -6,33 +6,24 @@
   outputs = { self, flake-utils, nixpkgs, xmonad-contrib }:
     let
       overlay = final: prev: rec {
-        polybar-xmonad = final.symlinkJoin {
+        polybar-xmonad = final.stdenv.mkDerivation {
           name = "polybar-xmonad";
-          paths = [ final.polybar ];
-          buildInputs = [ final.makeWrapper ];
+          src = self;
+          buildInputs = [ final.makeWrapper final.polybar ];
           installPhase = ''
-            mkdir $out/config
-            cp $src/polybar.ini $out/
-          '';
-          postBuild = ''
-            wrapProgram $out/bin/polybar --add-flags '--config="$POLYBAR_CONFIG"'
+            mkdir -p $out/bin $out/share
+            ln -s $src/polybar.ini $out/share/polybar.ini
+            makeWrapper ${final.polybar}/bin/polybar $out/bin/polybar-xmonad --add-flags --config="$out/share/polybar.ini"
           '';
         };
         haskellPackages = prev.haskellPackages.override (old: {
           overrides = prev.lib.composeExtensions (old.overrides or (_: _: { }))
             (hself: hsuper:
               rec {
-                xmonad-kid = (hself.callCabal2nix "xmonad-kid" (prev.nix-gitignore.gitignoreSource [ ] ./.) { }).overrideAttrs (old: rec {
-                  paths = [ hself.xmonad final.polybar-xmonad ];
-                  buildInputs = old.buildInputs ++ [ prev.makeWrapper ];
-                  installPhase = old.installPhase + ''
-                    cp $src/polybar.ini $out/
-                  '';
-                  postFixup = ''
-                    wrapProgram "$out/bin/xmonad-kid" \
-                      --prefix PATH : ${prev.lib.makeBinPath [ hself.xmonad final.polybar-xmonad ]} \
-                      --set-default POLYBAR_CONFIG "$out/polybar.ini"
-                  '';
+                xmonad-kid = (
+                  hself.callCabal2nix "xmonad-kid"
+                    (prev.nix-gitignore.gitignoreSource [ ] ./.)
+                    { }).overrideAttrs (old: rec {
                 });
               });
         });

@@ -118,7 +118,7 @@ polybarSpawner :: String -> ScreenId -> IO StatusBarConfig
 polybarSpawner h n = pure $ polybar h n
 
 polybar :: String -> ScreenId -> StatusBarConfig
-polybar h (S n) = statusBarGeneric ("polybar \"" ++ h ++ show n ++ "\"") mempty
+polybar h (S n) = statusBarGeneric ("polybar-xmonad \"" ++ h ++ show n ++ "\"") mempty
 
 xmobar :: ScreenId -> StatusBarConfig
 xmobar (S n) = statusBarPropTo ("_XMONAD_LOG_" ++ show n) ("xmobar -x " ++ show n ++ " $HOME/.config/xmobar/gruvbox-dark.xmobarrc") (pure xmobarPP)
