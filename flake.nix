@@ -2,8 +2,10 @@
   inputs = {
     flake-utils.url = github:numtide/flake-utils;
     xmonad-contrib.url = github:xmonad/xmonad-contrib;
+    xmonad-dbus.url = github:troydm/xmonad-dbus;
+    xmonad-dbus.flake = false;
   };
-  outputs = { self, flake-utils, nixpkgs, xmonad-contrib }:
+  outputs = inputs @ { self, flake-utils, nixpkgs, xmonad-contrib, ... }:
     let
       overlay = final: prev: rec {
         polybar-xmonad = final.stdenv.mkDerivation {
@@ -23,8 +25,11 @@
                 xmonad-kid = (
                   hself.callCabal2nix "xmonad-kid"
                     (prev.nix-gitignore.gitignoreSource [ ] ./.)
-                    { }).overrideAttrs (old: rec {
-                });
+                    { }).overrideAttrs (old: rec { });
+                # Disable tests on xmonad-dbus, as it fails to load the DBUS_SESSION_BUS_ADDRESS correctly
+                xmonad-dbus = hself.callCabal2nixWithOptions "xmonad-dbus"
+                  (prev.nix-gitignore.gitignoreSource [ ] inputs.xmonad-dbus.outPath) "--no-check"
+                  { };
               });
         });
       };
@@ -41,11 +46,14 @@
             nativeBuildInputs = [
               pkgs.cabal-install
               pkgs.haskell-language-server
+              pkgs.haskellPackages.cabal-fmt
+              pkgs.haskellPackages.fourmolu
             ];
           };
 
           packages = flake-utils.lib.flattenTree {
             xmonad = pkgs.haskellPackages.xmonad;
+            xmonad-dbus = pkgs.haskellPackages.xmonad-dbus;
             xmonad-kid = pkgs.haskellPackages.xmonad-kid;
             polybar-xmonad = pkgs.polybar-xmonad;
           };
