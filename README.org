@@ -8,4 +8,5 @@
 ** TODO https://xmonad.github.io/xmonad-docs/xmonad-contrib/XMonad-Util-Hacks.html
 ** TODO https://hackage.haskell.org/package/xmonad-contrib-0.17.0/docs/XMonad-Actions-DynamicWorkspaceGroups.html
 ** TODO https://hackage.haskell.org/package/xmonad-contrib-0.17.0/docs/XMonad-Actions-TopicSpace.html
+** TODO https://git.marvid.fr/mpo/xmonad-config/src/commit/24581f06d01f116b83715af22cdf16d68b477eb9
 

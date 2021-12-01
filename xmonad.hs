@@ -236,5 +236,3 @@ main = do
     . ewmh
     $ ewmhFullscreen
       myConfig
-
--- TODO Refactor like https://git.marvid.fr/mpo/xmonad-config/src/commit/24581f06d01f116b83715af22cdf16d68b477eb9
