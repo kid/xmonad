@@ -8,19 +8,18 @@ import XMonad.Actions.RotSlaves (rotAllDown, rotSlavesDown)
 import qualified XMonad.DBus as DC
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.InsertPosition
-import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
+import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks, ToggleStruts (ToggleStruts))
 import XMonad.Hooks.ManageHelpers (doCenterFloat)
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Layout.Accordion
 import XMonad.Layout.GridVariants (Grid (Grid))
 import XMonad.Layout.LimitWindows (decreaseLimit, increaseLimit, limitWindows)
-import XMonad.Layout.MultiToggle (EOT (EOT), mkToggle, single, (??))
+import XMonad.Layout.MultiToggle (EOT (EOT), mkToggle, single, (??), Toggle (Toggle))
 import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR, NBFULL, NOBORDERS))
 import XMonad.Layout.NoBorders
 import XMonad.Layout.Renamed
 import XMonad.Layout.ResizableTile
-import XMonad.Layout.ShowWName
 import XMonad.Layout.Simplest
 import XMonad.Layout.SimplestFloat
 import XMonad.Layout.Spacing
@@ -30,7 +29,8 @@ import XMonad.Layout.ThreeColumns
 import qualified XMonad.Layout.ToggleLayouts as T (toggleLayouts)
 import XMonad.Layout.WindowArranger (windowArrange)
 import qualified XMonad.StackSet as W hiding (filter)
-import XMonad.Util.EZConfig (additionalKeysP)
+import XMonad.Util.Cursor (setDefaultCursor)
+import XMonad.Util.EZConfig (additionalKeysP, checkKeymap)
 import XMonad.Util.Loggers
 import XMonad.Util.NamedScratchpad hiding (cmd)
 
@@ -58,8 +58,11 @@ foreground = "#ebdbb2"
 background :: String
 background = "#282828"
 
-green :: String
-green = "#8ec07c"
+gray :: String
+gray = "#a89984"
+
+aqua :: String
+aqua = "#8ec07c"
 
 myScratchpads :: [NamedScratchpad]
 myScratchpads =
@@ -86,6 +89,9 @@ myKeys =
   , ("<XF86MonBrightnessUp>", spawn "xbacklight +10")
   , ("M-S-<Tab>", rotSlavesDown)
   , ("M-C-<Tab>", rotAllDown)
+  , ("M-<Space>", sendMessage (Toggle NBFULL) >> sendMessage ToggleStruts)
+  , ("M-\\", sendMessage NextLayout)
+  , ("M-S-\\", sendMessage FirstLayout)
   , --
     -- KB_GROUP Sublayouts
     -- This is used to push windows to tabbed sublayouts, or pull them out of it.
@@ -151,10 +157,9 @@ myLayoutHook =
 
 tall =
   renamed [Replace "tall"]
-    . smartBorders
-    .
-    -- windowNavigation .
-    addTabs shrinkText myTabTheme
+    . lessBorders Screen
+    -- . windowNavigation
+    . addTabs shrinkText myTabTheme
     . subLayout [] (smartBorders Simplest)
     . limitWindows 12
     . smartSpacing mySpacing
@@ -180,15 +185,15 @@ tall =
 --           limitWindows 20 Full
 
 floats =
-  renamed [Replace "floats"] $
-    smartBorders $
-      limitWindows 20 simplestFloat
+  renamed [Replace "floats"]
+    . lessBorders Screen
+    $ limitWindows 20 simplestFloat
 
 grid =
   renamed [Replace "grid"]
-    . smartBorders
+    . lessBorders Screen
     . smartSpacing mySpacing
-    -- windowNavigation $
+    -- . windowNavigation
     . addTabs shrinkText myTabTheme
     . subLayout [] (smartBorders Simplest)
     . limitWindows 12
@@ -197,7 +202,7 @@ grid =
 
 -- spirals =
 --   renamed [Replace "spirals"]
---     . smartBorders
+--     . lessBorders
 --     . smartSpacing mySpacing
 --     -- windowNavigation .
 --     . addTabs shrinkText myTabTheme
@@ -206,8 +211,8 @@ grid =
 
 threeColMid =
   renamed [Replace "threeColMid"]
+    . lessBorders Screen
     . smartSpacing mySpacing
-    . smartBorders
     -- . windowNavigation
     . addTabs shrinkText myTabTheme
     . subLayout [] Simplest
@@ -216,8 +221,8 @@ threeColMid =
 
 threeCol =
   renamed [Replace "threeCol"]
+    . lessBorders Screen
     . smartSpacing mySpacing
-    . smartBorders
     -- . windowNavigation
     . addTabs shrinkText myTabTheme
     . subLayout [] Simplest
@@ -244,32 +249,23 @@ threeCol =
 --   -- add spacing between window and tabs which looks bad.
 --   $ tabbed shrinkText myTabTheme
 --
-tallAccordion = renamed [Replace "tallAccordion"] Accordion
+-- tallAccordion = renamed [Replace "tallAccordion"] Accordion
 
-wideAccordion =
-  renamed [Replace "wideAccordion"] $
-    Mirror Accordion
+-- wideAccordion =
+--   renamed [Replace "wideAccordion"] $
+--     Mirror Accordion
 
 -- setting colors for tabs layout and tabs sublayout.
+myTabTheme :: Theme
 myTabTheme =
   def
     { fontName = myFont
-    , activeColor = green
+    , activeColor = aqua
     , inactiveColor = background
-    , activeBorderColor = green
+    , activeBorderColor = aqua
     , inactiveBorderColor = background
     , activeTextColor = background
     , inactiveTextColor = foreground
-    }
-
--- Theme for showWName which prints current workspace when you change workspaces.
-myShowWNameTheme :: SWNConfig
-myShowWNameTheme =
-  def
-    { swn_font = myFont'
-    , swn_fade = 1.0
-    , swn_bgcolor = "#1d2021"
-    , swn_color = foreground
     }
 
 myManageHooks :: XMonad.Query (Data.Monoid.Endo WindowSet)
@@ -295,8 +291,9 @@ myLogHook s@(S n) dbus =
   def
     { ppOutput = DC.sendToPath dbus (show n)
     , ppOrder = \(_ : _ : _ : extras) -> extras
+    , ppSep = "  "
     , ppExtras =
-        [ logLayoutOnScreen s
+        [ wrapL ("%{F" ++ gray ++ "} ") " %{F-}" $ logLayoutOnScreen s
         , logTitleOnScreen s
         ]
     }
@@ -309,14 +306,32 @@ polybarSpawner dbus hostname s@(S i) =
     , sbCleanupHook = killStatusBar cmd
     }
  where
-  cmd = "polybar --config=~/Code/kid/xmonad/polybar.ini --reload " ++ hostname ++ show i
+  cmd = "polybar-xmonad " ++ hostname ++ show i
 
--- TODO look into https://github.com/disconsis/literate-xmonad-config/blob/master/src/config.org#dynamic-bar-highlighting-and-management
+{- HLINT ignore "Redundant return" -}
+myStartupHook :: X ()
+myStartupHook = do
+  return () >> checkKeymap myConfig myKeys
+  setDefaultCursor xC_left_ptr
+
+myConfig =
+  def
+    { manageHook = myManageHooks
+    , modMask = myModMask
+    , terminal = myTerminal
+    , focusFollowsMouse = False
+    , layoutHook = myLayoutHook
+    , startupHook = myStartupHook
+    , handleEventHook = restartEventHook
+    , borderWidth = myBorderWidth
+    , normalBorderColor = background
+    , focusedBorderColor = aqua
+    }
 
 main :: IO ()
 main = do
   dbus <- DC.connect
-  DC.requestAccess dbus
+  _ <- DC.requestAccess dbus
   hostName <- getHostName
   dirs <- getDirectories
   (`launch` dirs)
@@ -324,15 +339,5 @@ main = do
     . docks
     . ewmh
     $ ewmhFullscreen
-      def
-        { manageHook = myManageHooks
-        , modMask = myModMask
-        , terminal = myTerminal
-        , focusFollowsMouse = False
-        , layoutHook = showWName' myShowWNameTheme myLayoutHook
-        , handleEventHook = restartEventHook
-        , borderWidth = myBorderWidth
-        , normalBorderColor = background
-        , focusedBorderColor = green
-        }
+      myConfig
       `additionalKeysP` myKeys
