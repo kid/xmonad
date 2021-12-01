@@ -1,13 +1,16 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
+
 import qualified DBus.Client
 import Data.Monoid
 import Network.HostName (getHostName)
 import XMonad
 import qualified XMonad as XMonad.Operations
 import XMonad.Actions.RotSlaves (rotAllDown, rotSlavesDown)
+import XMonad.Config.Desktop
 import qualified XMonad.DBus as DC
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.InsertPosition
-import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
+import XMonad.Hooks.ManageDocks (manageDocks)
 import XMonad.Hooks.ManageHelpers (doCenterFloat)
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
@@ -26,8 +29,7 @@ import XMonad.Layout.Tabbed
 import XMonad.Layout.ThreeColumns
 import qualified XMonad.Layout.ToggleLayouts as T (ToggleLayout (Toggle), toggleLayouts)
 import qualified XMonad.StackSet as W hiding (filter)
-import XMonad.Util.Cursor (setDefaultCursor)
-import XMonad.Util.EZConfig (additionalKeysP, checkKeymap)
+import XMonad.Util.EZConfig (additionalKeysP)
 import XMonad.Util.Loggers
 import XMonad.Util.NamedScratchpad hiding (cmd)
 
@@ -74,7 +76,8 @@ myKeys =
   , ("M-S-r", spawn "xmonad --restart")
   , ("M-s h", namedScratchpadAction myScratchpads "htop")
   , ("M-s t", namedScratchpadAction myScratchpads "telegram")
-  , ("M-b", spawn "google-chrome-beta")
+  , -- FIXME this is hiding desktopConfig's toggle struts binding
+    ("M-b", spawn "google-chrome-beta")
   , ("M-S-b", spawn "google-chrome-beta --incognito")
   , ("<XF86AudioMute>", spawn "pactl set-sink-mute @DEFAULT_SINK@ toggle")
   , ("<XF86AudioLowerVolume>", spawn "pactl set-sink-volume @DEFAULT_SINK@ -10%")
@@ -107,9 +110,9 @@ myKeys =
 
 layouts = T.toggleLayouts fullscreen tiled
  where
-  fullscreen = noBorders $ avoidStruts Full
-  tiled = avoidStruts $ ifWider (1440 + 1) (ifWider (1920 + 1) ultraWideScreen laptopScreen) verticalScreen
-  ultraWideScreen = threeColMid ||| threeCol
+  fullscreen = noBorders Full
+  tiled = ifWider (1440 + 1) (ifWider (1920 + 1) ultraWideScreen laptopScreen) verticalScreen
+  ultraWideScreen = threeCol ||| threeColMid
   verticalScreen = grid
   laptopScreen = tall
 
@@ -124,7 +127,7 @@ tall =
 
 grid =
   renamed [Replace "grid"]
-    . smartBorders 
+    . smartBorders
     . smartSpacing mySpacing
     . addTabs shrinkText myTabTheme
     . subLayout [] (smartBorders Simplest)
@@ -202,22 +205,14 @@ polybarSpawner dbus hostname s@(S i) =
  where
   cmd = "polybar-xmonad " ++ hostname ++ show i
 
-{- HLINT ignore "Redundant return" -}
-myStartupHook :: X ()
-myStartupHook = do
-  return () >> checkKeymap myConfig myKeys
-  setDefaultCursor xC_left_ptr
-
 myConfig =
-  def
-    { manageHook = myManageHooks
+  desktopConfig
+    { manageHook = myManageHooks <+> manageHook desktopConfig
+    , handleEventHook = restartEventHook <+> handleEventHook desktopConfig
+    , layoutHook = desktopLayoutModifiers layouts
     , modMask = myModMask
     , terminal = myTerminal
     , focusFollowsMouse = False
-    , -- , layoutHook = myLayoutHook
-      layoutHook = layouts
-    , startupHook = myStartupHook
-    , handleEventHook = restartEventHook
     , borderWidth = myBorderWidth
     , normalBorderColor = background
     , focusedBorderColor = aqua
@@ -232,7 +227,5 @@ main = do
   dirs <- getDirectories
   (`launch` dirs)
     . dynamicSBs (pure . polybarSpawner dbus hostName)
-    . docks
-    . ewmh
     $ ewmhFullscreen
       myConfig
