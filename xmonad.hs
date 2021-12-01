@@ -3,31 +3,28 @@ import Data.Monoid
 import Network.HostName (getHostName)
 import XMonad
 import qualified XMonad as XMonad.Operations
-import XMonad.Actions.MouseResize
 import XMonad.Actions.RotSlaves (rotAllDown, rotSlavesDown)
 import qualified XMonad.DBus as DC
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.InsertPosition
-import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks, ToggleStruts (ToggleStruts))
+import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
 import XMonad.Hooks.ManageHelpers (doCenterFloat)
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
-import XMonad.Layout.Accordion
 import XMonad.Layout.GridVariants (Grid (Grid))
 import XMonad.Layout.LimitWindows (decreaseLimit, increaseLimit, limitWindows)
-import XMonad.Layout.MultiToggle (EOT (EOT), mkToggle, single, (??), Toggle (Toggle))
-import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR, NBFULL, NOBORDERS))
+import XMonad.Layout.MultiToggle
+import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.NoBorders
+import XMonad.Layout.PerScreen
 import XMonad.Layout.Renamed
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.Simplest
-import XMonad.Layout.SimplestFloat
 import XMonad.Layout.Spacing
 import XMonad.Layout.SubLayouts
 import XMonad.Layout.Tabbed
 import XMonad.Layout.ThreeColumns
-import qualified XMonad.Layout.ToggleLayouts as T (toggleLayouts)
-import XMonad.Layout.WindowArranger (windowArrange)
+import qualified XMonad.Layout.ToggleLayouts as T (ToggleLayout (Toggle), toggleLayouts)
 import qualified XMonad.StackSet as W hiding (filter)
 import XMonad.Util.Cursor (setDefaultCursor)
 import XMonad.Util.EZConfig (additionalKeysP, checkKeymap)
@@ -39,9 +36,6 @@ myModMask = mod4Mask
 
 myFont :: String
 myFont = "xft:FiraCode Nerd Font:regular:size:11:antialias=true:hinting=true"
-
-myFont' :: String
-myFont' = "xft:FiraCode Nerd Font:bold:size:24:antialias=true:hinting=true"
 
 myBorderWidth :: Dimension
 myBorderWidth = 2
@@ -89,7 +83,7 @@ myKeys =
   , ("<XF86MonBrightnessUp>", spawn "xbacklight +10")
   , ("M-S-<Tab>", rotSlavesDown)
   , ("M-C-<Tab>", rotAllDown)
-  , ("M-<Space>", sendMessage (Toggle NBFULL) >> sendMessage ToggleStruts)
+  , ("M-<Space>", sendMessage (T.Toggle "Full"))
   , ("M-\\", sendMessage NextLayout)
   , ("M-S-\\", sendMessage FirstLayout)
   , --
@@ -111,109 +105,37 @@ myKeys =
   , ("M-C-,", onGroup W.focusDown') -- Switch focus to prev tab
   ]
 
--- defaultLayouts =
---   lessBorders
---     Screen
---     ( avoidStruts
---         ( smartSpacingWithEdge
---             8
---             -- ThreeColMid layout puts the large master window in the center
---             -- of the screen. As configured below, by default it takes of 3/4 of
---             -- the available space. Remaining windows tile to both the left and
---             -- right of the master window. You can resize using "super-h" and
---             -- "super-l".
---             ( ThreeColMid 1 (3 / 100) (3 / 7)
---                 -- ResizableTall layout has a large master window on the left,
---                 -- and remaining windows tile on the right. By default each area
---                 -- takes up half the screen, but you can resize using "super-h" and
---                 -- "super-l".
---                 ||| ResizableTall 1 (3 / 100) (1 / 2) []
---                 -- Mirrored variation of ResizableTall. In this layout, the large
---                 -- master window is at the top, and remaining windows tile at the
---                 -- bottom of the screen. Can be resized as described above.
---                 ||| Mirror (ResizableTall 1 (3 / 100) (1 / 2) [])
---                 -- Full layout makes every window full screen. When you toggle the
---                 -- active window, it will bring the active window to the front.
---                 ||| noBorders Full
---             )
---         )
---     )
---
--- The layout hook
-myLayoutHook =
-  avoidStruts $
-    mouseResize $
-      windowArrange $
-        T.toggleLayouts floats $
-          mkToggle (NBFULL ?? NOBORDERS ?? EOT) myDefaultLayout
+layouts = T.toggleLayouts fullscreen tiled
  where
-  myDefaultLayout =
-    withBorder
-      myBorderWidth
-      threeColMid
-      ||| threeCol
-      ||| tall
-      ||| grid
+  fullscreen = noBorders $ avoidStruts Full
+  tiled = avoidStruts $ ifWider (1440 + 1) (ifWider (1920 + 1) ultraWideScreen laptopScreen) verticalScreen
+  ultraWideScreen = threeColMid ||| threeCol
+  verticalScreen = grid
+  laptopScreen = tall
 
 tall =
   renamed [Replace "tall"]
-    . lessBorders Screen
-    -- . windowNavigation
+    . smartBorders
+    . smartSpacing mySpacing
     . addTabs shrinkText myTabTheme
     . subLayout [] (smartBorders Simplest)
     . limitWindows 12
-    . smartSpacing mySpacing
     $ ResizableTall 1 (3 / 100) (1 / 2) []
-
--- magnify =
---   renamed [Replace "magnify"] $
---     smartBorders $
---       -- windowNavigation $
---       addTabs shrinkText myTabTheme $
---         subLayout [] (smartBorders Simplest) $
---           magnifier $
---             limitWindows 12 $
---               smartSpacing mySpacing $
---                 ResizableTall 1 (3 / 100) (1 / 2) []
-
--- monocle =
---   renamed [Replace "monocle"] $
---     smartBorders $
---       -- windowNavigation $
---       addTabs shrinkText myTabTheme $
---         subLayout [] Simplest $
---           limitWindows 20 Full
-
-floats =
-  renamed [Replace "floats"]
-    . lessBorders Screen
-    $ limitWindows 20 simplestFloat
 
 grid =
   renamed [Replace "grid"]
-    . lessBorders Screen
+    . smartBorders 
     . smartSpacing mySpacing
-    -- . windowNavigation
     . addTabs shrinkText myTabTheme
     . subLayout [] (smartBorders Simplest)
     . limitWindows 12
     . mkToggle (single MIRROR)
     $ Grid (16 / 10)
 
--- spirals =
---   renamed [Replace "spirals"]
---     . lessBorders
---     . smartSpacing mySpacing
---     -- windowNavigation .
---     . addTabs shrinkText myTabTheme
---     . subLayout [] Simplest
---     $ spiral (6 / 7)
-
 threeColMid =
   renamed [Replace "threeColMid"]
-    . lessBorders Screen
+    . smartBorders
     . smartSpacing mySpacing
-    -- . windowNavigation
     . addTabs shrinkText myTabTheme
     . subLayout [] Simplest
     . limitWindows 7
@@ -221,41 +143,13 @@ threeColMid =
 
 threeCol =
   renamed [Replace "threeCol"]
-    . lessBorders Screen
+    . smartBorders
     . smartSpacing mySpacing
-    -- . windowNavigation
     . addTabs shrinkText myTabTheme
     . subLayout [] Simplest
     . limitWindows 7
     $ ThreeCol 1 (3 / 100) (3 / 7)
 
--- threeRow =
---   renamed [Replace "threeRow"] $
---     smartSpacing mySpacing $
---       smartBorders $
---         -- windowNavigation $
---         addTabs shrinkText myTabTheme $
---           subLayout [] (smartBorders Simplest) $
---             limitWindows 7
---             -- Mirror takes a layout and rotates it by 90 degrees.
---             -- So we are applying Mirror to the ThreeCol layout.
---             $
---               Mirror $
---                 ThreeCol 1 (3 / 100) (1 / 2)
---
--- tabs =
---   renamed [Replace "tabs"]
---   -- I cannot add spacing to this layout because it will
---   -- add spacing between window and tabs which looks bad.
---   $ tabbed shrinkText myTabTheme
---
--- tallAccordion = renamed [Replace "tallAccordion"] Accordion
-
--- wideAccordion =
---   renamed [Replace "wideAccordion"] $
---     Mirror Accordion
-
--- setting colors for tabs layout and tabs sublayout.
 myTabTheme :: Theme
 myTabTheme =
   def
@@ -320,13 +214,15 @@ myConfig =
     , modMask = myModMask
     , terminal = myTerminal
     , focusFollowsMouse = False
-    , layoutHook = myLayoutHook
+    , -- , layoutHook = myLayoutHook
+      layoutHook = layouts
     , startupHook = myStartupHook
     , handleEventHook = restartEventHook
     , borderWidth = myBorderWidth
     , normalBorderColor = background
     , focusedBorderColor = aqua
     }
+    `additionalKeysP` myKeys
 
 main :: IO ()
 main = do
@@ -340,4 +236,3 @@ main = do
     . ewmh
     $ ewmhFullscreen
       myConfig
-      `additionalKeysP` myKeys
