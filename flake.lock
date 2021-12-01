@@ -157,7 +157,8 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
-        "xmonad-contrib": "xmonad-contrib"
+        "xmonad-contrib": "xmonad-contrib",
+        "xmonad-dbus": "xmonad-dbus"
       }
     },
     "xmonad": {
@@ -198,6 +199,22 @@
       "original": {
         "owner": "xmonad",
         "repo": "xmonad-contrib",
+        "type": "github"
+      }
+    },
+    "xmonad-dbus": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1633448552,
+        "narHash": "sha256-hQEHYGZBmrX+nae3/tN43caCuhoBtIaL6xGgmLfcy/A=",
+        "owner": "troydm",
+        "repo": "xmonad-dbus",
+        "rev": "248c472dad99fd001c856e9d36c4e82adeaff0a9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "troydm",
+        "repo": "xmonad-dbus",
         "type": "github"
       }
     }
