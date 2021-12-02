@@ -25,11 +25,13 @@
         polybar-xmonad = final.stdenv.mkDerivation {
           name = "polybar-xmonad";
           src = self;
-          buildInputs = [ final.makeWrapper final.polybar ];
+          buildInputs = [ final.makeWrapper final.polybar final.haskellPackages.xmonad-dbus ];
           installPhase = ''
             mkdir -p $out/bin $out/share
             ln -s $src/polybar.ini $out/share/polybar.ini
-            makeWrapper ${final.polybar}/bin/polybar $out/bin/polybar-xmonad --add-flags --config="$out/share/polybar.ini"
+            makeWrapper ${final.polybar}/bin/polybar $out/bin/polybar-xmonad \
+              --add-flags --config="$out/share/polybar.ini" \
+              --prefix PATH : ${final.lib.makeBinPath [final.haskellPackages.xmonad-dbus]}
           '';
         };
         haskellPackages = prev.haskellPackages.override (old: {
