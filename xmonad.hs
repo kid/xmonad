@@ -30,9 +30,9 @@ import XMonad.Layout.ThreeColumns
 import qualified XMonad.Layout.ToggleLayouts as T (ToggleLayout (Toggle), toggleLayouts)
 import qualified XMonad.StackSet as W hiding (filter)
 import XMonad.Util.EZConfig (additionalKeysP)
+import qualified XMonad.Util.Hacks as Hacks
 import XMonad.Util.Loggers
 import XMonad.Util.NamedScratchpad hiding (cmd)
-import qualified XMonad.Util.Hacks as Hacks
 
 myModMask :: KeyMask
 myModMask = mod4Mask
@@ -206,10 +206,11 @@ polybarSpawner dbus hostname s@(S i) =
  where
   cmd = "polybar-xmonad " ++ hostname ++ show i
 
-myHandleEventHook = mconcat
-  [ restartEventHook
-  , Hacks.windowedFullscreenFixEventHook -- FIXME Does not seems to work?
-  ]
+myHandleEventHook =
+  mconcat
+    [ restartEventHook
+    , Hacks.windowedFullscreenFixEventHook -- FIXME Does not seems to work?
+    ]
 
 myConfig =
   desktopConfig
