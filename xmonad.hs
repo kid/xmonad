@@ -32,6 +32,7 @@ import qualified XMonad.StackSet as W hiding (filter)
 import XMonad.Util.EZConfig (additionalKeysP)
 import XMonad.Util.Loggers
 import XMonad.Util.NamedScratchpad hiding (cmd)
+import qualified XMonad.Util.Hacks as Hacks
 
 myModMask :: KeyMask
 myModMask = mod4Mask
@@ -205,10 +206,15 @@ polybarSpawner dbus hostname s@(S i) =
  where
   cmd = "polybar-xmonad " ++ hostname ++ show i
 
+myHandleEventHook = mconcat
+  [ restartEventHook
+  , Hacks.windowedFullscreenFixEventHook -- FIXME Does not seems to work?
+  ]
+
 myConfig =
   desktopConfig
     { manageHook = myManageHooks <+> manageHook desktopConfig
-    , handleEventHook = restartEventHook <+> handleEventHook desktopConfig
+    , handleEventHook = myHandleEventHook <+> handleEventHook desktopConfig
     , layoutHook = desktopLayoutModifiers layouts
     , modMask = myModMask
     , terminal = myTerminal
@@ -227,5 +233,6 @@ main = do
   dirs <- getDirectories
   (`launch` dirs)
     . dynamicSBs (pure . polybarSpawner dbus hostName)
+    . Hacks.javaHack
     $ ewmhFullscreen
       myConfig
