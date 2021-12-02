@@ -68,7 +68,7 @@
               pkgs.cabal-install
               pkgs.haskell-language-server
               pkgs.haskellPackages.cabal-fmt
-              pkgs.haskellPackages.fourmolu
+              pkgs.haskellPackages.stylish-haskell
             ];
           };
 
