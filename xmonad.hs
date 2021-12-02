@@ -115,14 +115,14 @@ layouts = T.toggleLayouts fullscreen tiled
   tiled = ifWider (1440 + 1) (ifWider (1920 + 1) ultraWideScreen laptopScreen) verticalScreen
   ultraWideScreen = threeCol ||| threeColMid
   verticalScreen = grid
-  laptopScreen = tall
+  laptopScreen = tall ||| threeCol
 
 tall =
   renamed [Replace "tall"]
     . smartBorders
     . smartSpacing mySpacing
     . addTabs shrinkText myTabTheme
-    . subLayout [] (smartBorders Simplest)
+    . subLayout [] Simplest
     . limitWindows 12
     $ ResizableTall 1 (3 / 100) (1 / 2) []
 
@@ -131,7 +131,7 @@ grid =
     . smartBorders
     . smartSpacing mySpacing
     . addTabs shrinkText myTabTheme
-    . subLayout [] (smartBorders Simplest)
+    . subLayout [] Simplest
     . limitWindows 12
     . mkToggle (single MIRROR)
     $ Grid (16 / 10)
