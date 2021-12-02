@@ -110,7 +110,7 @@ layouts = T.toggleLayouts fullscreen tiled
   ultraWideScreen = threeCol ||| threeColMid
   verticalScreen = threeRow ||| grid
   laptopScreen = tall ||| threeCol
-  smarts = smartBorders . smartSpacingWithEdge mySpacing
+  smarts = renamed [KeepWordsRight 1]. smartBorders . smartSpacingWithEdge mySpacing
 
 tall =
   renamed [Replace "tall"]
