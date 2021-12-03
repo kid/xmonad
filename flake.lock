@@ -99,11 +99,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1638124871,
-        "narHash": "sha256-sb7MD8hgwJR9yd1rt5d7jO6YEbl0ciyxv1nTbUs6YB4=",
+        "lastModified": 1638531354,
+        "narHash": "sha256-Yzx45xmvJSahLwLeLzUqrKBnfqI3QWE68yESEoJRp2U=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d6312c26b62ab89f5656baff8a3ee760ffd471c9",
+        "rev": "16cabe2824aeff7f3fdfeeb573e21c6d1fdd6302",
         "type": "github"
       },
       "original": {
@@ -113,11 +113,11 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1638124871,
-        "narHash": "sha256-sb7MD8hgwJR9yd1rt5d7jO6YEbl0ciyxv1nTbUs6YB4=",
+        "lastModified": 1638531354,
+        "narHash": "sha256-Yzx45xmvJSahLwLeLzUqrKBnfqI3QWE68yESEoJRp2U=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d6312c26b62ab89f5656baff8a3ee760ffd471c9",
+        "rev": "16cabe2824aeff7f3fdfeeb573e21c6d1fdd6302",
         "type": "github"
       },
       "original": {
@@ -157,22 +157,23 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
+        "xmonad": "xmonad",
         "xmonad-contrib": "xmonad-contrib",
         "xmonad-dbus": "xmonad-dbus"
       }
     },
     "xmonad": {
       "inputs": {
-        "flake-utils": "flake-utils_3",
-        "git-ignore-nix": "git-ignore-nix_2",
-        "nixpkgs": "nixpkgs_5"
+        "flake-utils": "flake-utils_2",
+        "git-ignore-nix": "git-ignore-nix",
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1637599784,
-        "narHash": "sha256-f+zGmJRQm8CFAcSdSSGojaCkd3j536B/9bvuBqMuBYE=",
+        "lastModified": 1638357089,
+        "narHash": "sha256-KfKUiGjJuzUh4nGC4b6RSc+uWE/BbIPwcrLn8xaHfCs=",
         "owner": "xmonad",
         "repo": "xmonad",
-        "rev": "dbe9c4f799fd826c199169d012c2d2687b210a7f",
+        "rev": "eb2ee340e4180d1f7741605d846b154e777b509b",
         "type": "github"
       },
       "original": {
@@ -183,10 +184,12 @@
     },
     "xmonad-contrib": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
-        "git-ignore-nix": "git-ignore-nix",
-        "nixpkgs": "nixpkgs_3",
-        "xmonad": "xmonad"
+        "flake-utils": "flake-utils_3",
+        "git-ignore-nix": "git-ignore-nix_2",
+        "nixpkgs": "nixpkgs_5",
+        "xmonad": [
+          "xmonad"
+        ]
       },
       "locked": {
         "lastModified": 1638115725,

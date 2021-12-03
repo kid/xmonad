@@ -1,11 +1,13 @@
 {
   inputs = {
     flake-utils.url = github:numtide/flake-utils;
+    xmonad.url = github:xmonad/xmonad;
     xmonad-contrib.url = github:xmonad/xmonad-contrib;
+    xmonad-contrib.inputs.xmonad.follows = "xmonad";
     xmonad-dbus.url = github:troydm/xmonad-dbus;
     xmonad-dbus.flake = false;
   };
-  outputs = inputs @ { self, flake-utils, nixpkgs, xmonad-contrib, ... }:
+  outputs = inputs @ { self, flake-utils, nixpkgs, xmonad, xmonad-contrib, xmonad-dbus, ... }:
     let
       overlay = final: prev: rec {
         # Polybar 3.5.7 does not support wm-restack = generic
@@ -54,7 +56,8 @@
               });
         });
       };
-      overlays = xmonad-contrib.overlays ++ [ overlay ];
+      # overlays = xmonad-contrib.overlays ++ [ overlay ];
+      overlays = [overlay xmonad.overlay xmonad-contrib.overlay];
     in
     flake-utils.lib.eachDefaultSystem
       (system:
@@ -80,5 +83,5 @@
           };
 
           defaultPackage = packages.xmonad-kid;
-        }) // { inherit overlay overlays; };
+        }) // { inherit overlay; };
 }
